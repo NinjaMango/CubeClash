@@ -89,7 +89,7 @@
 
     //add new user to database and add verification hash and stats
     if ($validated && $validateType == "signup"){
-        $insert = $conn->query("INSERT INTO users VALUES" . "('$username','$hash','$email', '$verified', CURRENT_TIMESTAMP())");
+        $insert = $conn->query("INSERT INTO users VALUES" . "('userid','$username','$hash', '$email', CURRENT_TIMESTAMP(), CURRENT_TIMESTAMP(), '1', '1000', '0')");
         if (!$insert) echo ($conn->connect_error);
 
         //redirect to session

@@ -1,4 +1,7 @@
-<?php require_once("config.php")?>
+<?php 
+require_once("config.php");
+logRequest(10);
+?>
 <!DOCTYPE html>
     <html>
     <head>
