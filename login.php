@@ -1,6 +1,6 @@
 <?php 
 require_once("config.php");
-logRequest(10);
+logRequest(11);
 ?>
 <!DOCTYPE html>
     <html>

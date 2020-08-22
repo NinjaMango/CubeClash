@@ -19,12 +19,13 @@ function htmlhead($title){
 }
 
 function logRequest($pageid){
-    $userid = "9999999999999999";
+    $userid = "2147483647";
     if (isset($_SESSION["userid"])){
         $userid = $_SESSION["userid"];
     }
+    $userip = $_SERVER["REMOTE_ADDR"];
     $conn = new mysqli("localhost", "root", "", "cubeclash");
-    $logRequest = $conn->query("INSERT INTO `useractivity` VALUES ('$userid', '$pageid', NOW())");
+    $logRequest = $conn->query("INSERT INTO `useractivity` VALUES ('$userid','$userip', '$pageid', NOW())");
 }
 
 function heartbeat($pageid){

@@ -10,6 +10,7 @@
         $email = $username;
     }
     $hash = password_hash($password, PASSWORD_DEFAULT);
+    $userFound = false;
     $verified = 0;
     $_SESSION["error"] = "";
     $validated = true;
@@ -37,6 +38,7 @@
                 header("Location: signup.php");
                 $usernames->close();
                 $validated = false;
+                $userFound = true;
             }
             //if logging in, check password
             if ($validateType == "login"){
@@ -45,10 +47,12 @@
                 if (password_verify($password, $usernames->fetch_assoc()["password"])){
                     header("Location: home.php");
                     $_SESSION["username"]  = $username;
+                    $userFound = true;
                 } else {
                     $_SESSION["error"] = "Invalid username/password.";
                     header("Location: login.php");
                     $usernames->close();
+                    $userFound = true;
                 }
             
             }
@@ -68,6 +72,7 @@
                 header("Location: signup.php");
                 $emails->close();
                 $validated = false;
+                $userFound = true;
             }
             //if login mode, check if password matches. if yes, redirect to home page. else, redirect to login page and return error mesage.
             if ($validateType == "login"){
@@ -76,10 +81,12 @@
                     header("Location: home.php");
                     $emails->data_seek($j);
                     $_SESSION["username"] = $emails->fetch_assoc()["username"];
+                    $userFound = true;
                 } else {
                     $_SESSION["error"] = "Invalid email/password.";
                     header("Location: login.php");
-                    $usernames->close();
+                    $emails->close();
+                    $userFound = true;
                 }
             
             }
@@ -91,12 +98,17 @@
     if ($validated && $validateType == "signup"){
         $insert = $conn->query("INSERT INTO users VALUES" . "('userid','$username','$hash', '$email', CURRENT_TIMESTAMP(), CURRENT_TIMESTAMP(), '1', '1000', '0')");
         if (!$insert) echo ($conn->connect_error);
-
-        //redirect to session
+          //redirect to session
         header("Location: /home.php");
         $_SESSION["username"] = $username;
         $_SESSION["id"] = $id;
     }
+    if (!$userFound && $validateType == "login"){
+        $_SESSION["error"] = "Invalid username/password.";
+        header("Location: login.php");
+        
+    }
+      
 
     $conn->close();
     $usernames->close();
