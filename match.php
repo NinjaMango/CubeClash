@@ -1,4 +1,4 @@
-<!-- User's Camera -->
+<!--
 <p>You</p>
 <video  style = "display:none" id= "usercamera" controls autoplay></video>
 <canvas id = "canvas" width = 320 height = 240></canvas>
@@ -21,7 +21,7 @@
     
     //match info
     const match = <?php echo $_GET["match"];?>;
-    const user = <?php echo "'" .  $_GET["userid"] . "'";?>;
+    const user = <?php echo "'" .  $_SESSION["userid"] . "'";?>;
     frame = 0;
     //send image to server every 50ms
     var gameLoop = setInterval(function(){sendImage()}, 50);
@@ -57,3 +57,4 @@
 
 
 </script>
+-->
