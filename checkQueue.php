@@ -21,7 +21,7 @@ if ($inMatch->num_rows == 1){
         $opponentid = $searchQueue->fetch_assoc()["userid"];
         if ($opponentid != $userid){
             $searchQueue->data_seek($j);
-            $threshold = 100;
+            $threshold = 1000;
             $opponentRating = $searchQueue->fetch_assoc()["rating"];
             if (abs($opponentRating - $userRating) <= $threshold){
                 require_once("getScramble.php");

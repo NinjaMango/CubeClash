@@ -12,20 +12,25 @@ logRequest(3);
         <!-- get all the match info -->
         <script>
         <?php
+            echo "  userid = " . $_SESSION["userid"] . "; \n";
+            echo "          username = \"" . $_SESSION["username"] . "\"; \n";
             $matchid = $_GET["matchid"];
             $getMatchInfo = $conn->query("SELECT * FROM `matches` WHERE `matchid`='$matchid'");
             $matchInfo = $getMatchInfo->fetch_row();
             $opponentid = "";
             $opponentRating = "";
             $opponentName = "";
-            $scramble = $matchInfo[6];
-            echo "  matchid = " . $matchInfo[0] . "; \n";;
+            $scramble = $matchInfo[8];
+            $frame = "";
+            echo "          matchid = " . $matchInfo[0] . "; \n";;
             if ($matchInfo[1] == $userid){
                 $opponentid = $matchInfo[2];
                 $opponentRating = $matchInfo[4];
+                $frame = $matchInfo[5];
             } else {
                 $opponentid = $matchInfo[1];
                 $opponentRating = $matchInfo[3];
+                $frame = $matchInfo[6];
             }
             $getOpponentName = $conn->query("SELECT `username` FROM `users` WHERE `userid`='$opponentid'");
             $getOpponentName->data_seek(0);
@@ -35,25 +40,84 @@ logRequest(3);
             echo "          opponentName = \"" . $opponentName . "\"; \n";;
             echo "          //hey! are you trying to cheat? well congrats, you did. I'm too lazy to encode this.\n";
             echo "          scramble = \"" . $scramble . "\"; \n";;
+            echo "          frame = " . $frame . "; \n";;
         ?>
         </script>
 
-        <!-- display opponent info -->
+        <!-- display opponent info and video -->
         <h1 id="opponentname">Opponent: <?php echo $opponentName . " " . $opponentRating . "🏆";?></h1>
+        <img id = "opponentvideo" src = "">
+        <script>
+            function opponentVideo() {
+                var opponentVideo = new XMLHttpRequest();
+                opponentVideo.open("GET", "opponentVideo.php?matchid=<?php echo $matchid; ?>&opponentid=<?php echo $opponentid; ?>");
+                opponentVideo.send();
+                opponentVideo.onload = function(){
+                    if (opponentVideo.readyState === 4) {
+                        if (opponentVideo.status === 200) {
+                            console.log("opponentVideo.php?matchid=<?php echo $matchid; ?>&opponentid=<?php echo $opponentid; ?>");
+                            document.getElementById("opponentvideo").src = opponentVideo.responseText;
+                        }
+                    } 
+                }
+            }
+        </script>
+
         <!-- game status -->
         <h1 id="status"></h1>
 
-        <script>
-        function solveCube() {
-            var solved = new XMLHttpRequest();
-            solved.open("GET", "endGame.php?matchid=<?php echo $matchid;?>&userid=<?php echo $userid; ?>&opponentid=<?php echo $opponentid;?>");
-            solved.send();
-            solved.onload = function(){
-                console.log(solved.responseText);
-            }
-        }
-        </script>
         <button id = "solved" onclick="solveCube()">Solved Cube</button>
+
+
+        <!-- display yourself and send image to server -->
+        <video  style = "display:none" id= "usercamera" controls autoplay></video>
+        <canvas id = "userdisplay" width = 320 height = 240></canvas>
+        <script>
+            //get video and canvas elements
+            usercamera = document.getElementById("usercamera");
+            userdisplay = document.getElementById("userdisplay");
+            ctx = userdisplay.getContext("2d");
+            constraints = {
+                video: true
+            };
+
+            //stream the video
+            navigator.mediaDevices.getUserMedia(constraints)
+                .then((stream) => {
+                    usercamera.srcObject = stream;
+                })
+            
+            function sendImage(){
+                //draw image on client screen
+                ctx.drawImage(usercamera, 0, 0, userdisplay.width, userdisplay.height);
+                //send image to server
+                var sendImage = new XMLHttpRequest();
+                sendImage.open("POST", "processImage.php", true);
+                sendImage.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+                sendImage.onload = function () {
+                    if (sendImage.readyState === 4) {
+                        if (sendImage.status === 200) {
+                            console.log(sendImage.responseText);
+                        }
+                    }
+                };
+                frame += 1;
+                sendImage.send("matchid=" + matchid + "&userid=" + userid + "&frame=" + frame + "&img=" + userdisplay.toDataURL())
+            }
+        </script>
+
+        
+        <!-- solve cube button -->
+        <script>
+            function solveCube() {
+                var solved = new XMLHttpRequest();
+                solved.open("GET", "endGame.php?matchid=<?php echo $matchid;?>&userid=<?php echo $userid; ?>&opponentid=<?php echo $opponentid;?>");
+                solved.send();
+                
+            }
+        </script>
+        
+        <!-- get game status -->
         <script>
         function getStatus() {
             var getStatus = new XMLHttpRequest();
@@ -95,6 +159,8 @@ logRequest(3);
         }
         var gameLoop = setInterval(() => {
            getStatus(); 
+           sendImage();
+           opponentVideo();
         }, 50);
 
 
