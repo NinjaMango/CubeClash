@@ -19,5 +19,5 @@ for ($j = 0; $j < 20; $j++){
     $lastTwist = $move;
     $lastAxis = floor($move/2);
 }
-echo $scramble;
+$scramble = substr($scramble, 0, -1);
 ?>

@@ -31,9 +31,9 @@ function logRequest($pageid){
 function heartbeat($pageid){
     $userid = $_SESSION["userid"];
     echo "<script> \n";
-    echo "              var heartbeat = new XMLHttpRequest(); \n";
-    echo "              heartbeat.open('GET', 'heartbeat.php?userid=$userid&pageid=$pageid');\n";
-    echo "              heartbeat.send(); \n";
+    echo "          var heartbeat = new XMLHttpRequest(); \n";
+    echo "          heartbeat.open('GET', 'heartbeat.php?userid=$userid&pageid=$pageid');\n";
+    echo "          heartbeat.send(); \n";
     echo "        </script> \n";
     
 

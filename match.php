@@ -1,60 +1,104 @@
-<!--
-<p>You</p>
-<video  style = "display:none" id= "usercamera" controls autoplay></video>
-<canvas id = "canvas" width = 320 height = 240></canvas>
-<button id = "finish">Finish</button>
-<p id = "test"></p>
-<script>
-    //get video and canvas elements
-    const usercamera = document.getElementById("usercamera");
-    const canvas = document.getElementById("canvas");
-    const ctx = canvas.getContext("2d");
-    const constraints = {
-        video: true
-    };
 
-    //stream video
-    navigator.mediaDevices.getUserMedia(constraints)
-        .then((stream) => {
-            usercamera.srcObject = stream;
-        })
-    
-    //match info
-    const match = <?php echo $_GET["match"];?>;
-    const user = <?php echo "'" .  $_SESSION["userid"] . "'";?>;
-    frame = 0;
-    //send image to server every 50ms
-    var gameLoop = setInterval(function(){sendImage()}, 50);
-    function sendImage(){
-        //draw image on screen
-        ctx.drawImage(usercamera, 0, 0, canvas.width, canvas.height);
-        var sendImage = new XMLHttpRequest();
-        sendImage.open("POST", "processImage.php", true);
-        sendImage.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-        sendImage.onload = function () {
-            if (sendImage.readyState === 4) {
-                if (sendImage.status === 200) {
-                    document.getElementById("test").innerHTML = sendImage.responseText;
-                }
+<?php 
+require_once("config.php");
+logRequest(3);
+?>
+<!DOCTYPE html>
+    <html>
+    <head>
+        <?php htmlhead("Finding Match"); ?>
+    </head>
+    <body>
+        <!-- get all the match info -->
+        <script>
+        <?php
+            $matchid = $_GET["matchid"];
+            $getMatchInfo = $conn->query("SELECT * FROM `matches` WHERE `matchid`='$matchid'");
+            $matchInfo = $getMatchInfo->fetch_row();
+            $opponentid = "";
+            $opponentRating = "";
+            $opponentName = "";
+            $scramble = $matchInfo[6];
+            echo "  matchid = " . $matchInfo[0] . "; \n";;
+            if ($matchInfo[1] == $userid){
+                $opponentid = $matchInfo[2];
+                $opponentRating = $matchInfo[4];
+            } else {
+                $opponentid = $matchInfo[1];
+                $opponentRating = $matchInfo[3];
             }
-        };
-        sendImage.send("matchid=" + match + "&userid=" + user + "&frame=" + frame + "&img=" + canvas.toDataURL());
+            $getOpponentName = $conn->query("SELECT `username` FROM `users` WHERE `userid`='$opponentid'");
+            $getOpponentName->data_seek(0);
+            $opponentName = $getOpponentName->fetch_assoc()["username"];
+            echo "          opponentid = " . $opponentid . "; \n";
+            echo "          opponentRating = " . $opponentRating . "; \n";;
+            echo "          opponentName = \"" . $opponentName . "\"; \n";;
+            echo "          //hey! are you trying to cheat? well congrats, you did. I'm too lazy to encode this.\n";
+            echo "          scramble = \"" . $scramble . "\"; \n";;
+        ?>
+        </script>
 
-        
-        
-        frame++;
-    };
+        <!-- display opponent info -->
+        <h1 id="opponentname">Opponent: <?php echo $opponentName . " " . $opponentRating . "🏆";?></h1>
+        <!-- game status -->
+        <h1 id="status"></h1>
 
-    //stop image stream
-    function finishStream(){
-        var finishStream = new XMLHttpRequest();
-        finishStream.open("POST", "finishStream.php", true);
-        finishStream.send("match=" + match + "&user=" + user);
-        clearInterval(gameLoop);
-    }
-    const finish = document.getElementById("finish");
-    finish.addEventListener("click", function(){finishStream();})
+        <script>
+        function solveCube() {
+            var solved = new XMLHttpRequest();
+            solved.open("GET", "endGame.php?matchid=<?php echo $matchid;?>&userid=<?php echo $userid; ?>&opponentid=<?php echo $opponentid;?>");
+            solved.send();
+            solved.onload = function(){
+                console.log(solved.responseText);
+            }
+        }
+        </script>
+        <button id = "solved" onclick="solveCube()">Solved Cube</button>
+        <script>
+        function getStatus() {
+            var getStatus = new XMLHttpRequest();
+            getStatus.open("GET", "gameStatus.php?matchid=<?php echo $matchid;?>");
+            getStatus.send();
+            getStatus.onload = function(){
+                if (getStatus.status == 200){
+                    var status = getStatus.responseText.split('|');
+                    console.log(status);
+                    //pregame
+                    if (status[0] == "0"){
+                        document.getElementById("status").innerHTML = "Starting in " + status[1] +  "..." ;
+                    }
+                    //scramble
+                    if (status[0] == "1"){
+                        document.getElementById("status").innerHTML = "Scramble: " + scramble +  ". Inspection starting in " + status[1] + "...";
+                    }
+                    //inspection 
+                    if (status[0] == "2"){
+                        document.getElementById("status").innerHTML = "Inspection: " + status[1];
+                    }
+                    //solve 
+                    if (status[0] == "3"){
+                        document.getElementById("status").innerHTML = "Solving: " + status[1];
+                    }
+                    //solve 
+                    if (status[0] == "4"){
+                        if (status[1] == <?php echo $_SESSION["userid"]; ?>){
+                            document.getElementById("status").innerHTML = "You Win!"; 
+                        } else {
+                            document.getElementById("status").innerHTML = "You Lose!"; 
+                        }
+                        setTimeout(() => {
+                            window.location.replace("home.php");
+                        }, 3000);
+                    }
+                } 
+            }
+        }
+        var gameLoop = setInterval(() => {
+           getStatus(); 
+        }, 50);
 
 
-</script>
--->
+        </script>
+        <?php heartbeat(3) ?>
+    </body>
+</html>

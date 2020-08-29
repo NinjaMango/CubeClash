@@ -5,7 +5,7 @@ logRequest(2);
 <!DOCTYPE html>
     <html>
     <head>
-        <?php htmlhead("Finding Match"); ?>
+        <?php htmlhead("Match"); ?>
     </head>
     <body>
         <h1>Finding Match For: <?php echo $_SESSION["username"] ?></h1>
@@ -20,9 +20,9 @@ logRequest(2);
             console.log("Joining queue...");
             joinQueue.onload = function(){
                     if (joinQueue.status != 200){
-                        //console.log("Error " + joinQueue.status + ": " + joinQueue.statusText);
+                        console.log("Error " + joinQueue.status + ": " + joinQueue.statusText);
                     } else {
-                        //console.log(joinQueue.responseText);
+                        console.log(joinQueue.responseText);
                     }
                 }
 
@@ -30,14 +30,14 @@ logRequest(2);
             setInterval(() => {
                 var checkQueue = new XMLHttpRequest();
                 checkQueue.open("GET", "http://localhost/checkQueue.php?userid=<?php echo $_SESSION["userid"]; ?>")
-                console.log("Checking for match...");
+                //console.log("Checking for match...");
                 checkQueue.onload = function(){
                     if (checkQueue.status != 200){
-                        //console.log("Error " + checkQueue.status + ": " + checkQueue.statusText);
+                        console.log("Error " + checkQueue.status + ": " + checkQueue.statusText);
                     } else {
-                        //console.log(checkQueue.responseText);
+                        console.log(checkQueue.responseText);
                         if (checkQueue.responseText[0] == "m"){
-                            window.location.replace("match.php?match=" + checkQueue.responseText.split(":")[1] );
+                            window.location.replace("match.php?matchid=" + checkQueue.responseText.split(":")[1] );
                         }
                     }
                 }
@@ -45,6 +45,7 @@ logRequest(2);
 
 
             }, 500);
+            
         </script>
 
         <?php heartbeat(2) ?>
